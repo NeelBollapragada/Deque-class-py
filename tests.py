@@ -299,6 +299,148 @@ def test_14_zero_as_real_value():
     print("test_14 passed")
 
 
+# Variable block size tests
+
+def test_block_size_1():
+    d = Deque(block_size=1)
+    ref = []
+
+    for i in range(20):
+        d.append(i)
+        ref.append(i)
+
+    check_equal(d, ref, "block_size_1 append")
+
+    for _ in range(10):
+        assert d.pop() == ref.pop(0)
+
+    check_equal(d, ref, "block_size_1 after pops")
+    print("test_block_size_1 passed")
+
+
+def test_block_size_2():
+    d = Deque(block_size=2)
+    ref = []
+
+    for i in range(15):
+        d.append(i)
+        ref.append(i)
+
+    for _ in range(5):
+        assert d.pop() == ref.pop(0)
+
+    for i in range(100, 110):
+        d.append(i)
+        ref.append(i)
+
+    check_equal(d, ref, "block_size_2")
+    print("test_block_size_2 passed")
+
+
+def test_weird_block_sizes():
+    for b in [3, 4, 7, 16]:
+        d = Deque(block_size=b)
+        ref = []
+
+        for i in range(30):
+            d.append(i)
+            ref.append(i)
+
+        for _ in range(8):
+            assert d.pop() == ref.pop(0)
+
+        check_equal(d, ref, f"weird_block_size_{b}")
+
+    print("test_weird_block_sizes passed")
+
+
+def test_boundary_conditions():
+    for b in [1, 2, 3, 4, 7, 10]:
+        for n in [b-1, b, b+1, 2*b-1, 2*b, 2*b+1]:
+            if n <= 0:
+                continue
+
+            d = Deque(block_size=b)
+            ref = list(range(n))
+
+            for x in ref:
+                d.append(x)
+
+            check_equal(d, ref, f"boundary b={b}, n={n}")
+
+    print("test_boundary_conditions passed")
+
+
+def test_full_depletion():
+    for b in [1, 2, 3, 7]:
+        d = Deque(block_size=b)
+        ref = list(range(20))
+
+        for x in ref:
+            d.append(x)
+
+        while ref:
+            assert d.pop() == ref.pop(0)
+
+        try:
+            d.pop()
+            raise AssertionError(f"empty pop failed for block size {b}")
+        except IndexError:
+            pass
+
+    print("test_full_depletion passed")
+
+
+def test_zero_values():
+    for b in [1, 2, 3, 5]:
+        d = Deque(block_size=b)
+        ref = [0, 1, 0, 2, 0, 3, 0]
+
+        for x in ref:
+            d.append(x)
+
+        check_equal(d, ref, f"zero_values_{b}")
+
+        for _ in range(3):
+            assert d.pop() == ref.pop(0)
+
+        check_equal(d, ref, f"zero_values_after_pop_{b}")
+
+    print("test_zero_values passed")
+
+
+def test_randomized():
+    for b in [1, 2, 3, 4, 7, 10, 16]:
+        random.seed(0)
+        d = Deque(block_size=b)
+        ref = []
+
+        for step in range(500):
+            op = random.choice(["append", "pop"])
+
+            if op == "append" or not ref:
+                x = random.randint(0, 1000)
+                d.append(x)
+                ref.append(x)
+            else:
+                assert d.pop() == ref.pop(0), (
+                    f"random pop mismatch b={b}, step={step}"
+                )
+
+            check_equal(d, ref, f"random b={b}, step={step}")
+
+    print("test_randomized passed")
+
+def run_variable_block_tests():
+    test_block_size_1()
+    test_block_size_2()
+    test_weird_block_sizes()
+    test_boundary_conditions()
+    test_full_depletion()
+    test_zero_values()
+    test_randomized()
+    print("\nAll variable block size tests passed")
+
 def run_all_tests():
     test_1_single_block_partial_fill()
     test_2_exactly_one_full_block()
@@ -314,6 +456,10 @@ def run_all_tests():
     test_12_randomized_against_list()
     test_13_multi_block_backward_indexing_stress()
     test_14_zero_as_real_value()
+
+    print()
+    run_variable_block_tests()
+    
     print("\nAll tests passed")
 
 

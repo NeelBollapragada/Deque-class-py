@@ -10,14 +10,14 @@ class Block:
         self.size = size
 
     def __getitem__(self, index):
-        if index < 0 or index > 9:
-            raise IndexError(f"Cannot index block with index: {index}, must be between 0 and 9")
+        if index < 0 or index > self.size - 1:
+            raise IndexError(f"Cannot index block with index: {index}, must be between 0 and {self.size - 1}")
 
         return self.block[index]
 
     def __setitem__(self, index, value):
         if index < 0 or index > self.size - 1:
-            raise IndexError(f"Cannot index blcok with index: {index}, must be between 0 and 9")
+            raise IndexError(f"Cannot index block with index: {index}, must be between 0 and {self.size - 1}")
 
         self.block[index] = value
 
